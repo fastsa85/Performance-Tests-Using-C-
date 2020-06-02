@@ -10,38 +10,31 @@ using System.Threading.Tasks;
 namespace PerformaceTestExample
 {
     public class Tests
-    {        
-        //const string URL = "https://localhost:5001/api/v1/posts";
+    {  
         const string URL = "https://www.google.com.ua";
-        const int NUMBER_OF_REQUESTS = 300;
-        const int NUMBER_OF_USERS = 3;
-
-        const int MAX_TIMEOUT = 10; // minutes
+        //const string URL = "https://localhost:5001/api/v1/posts";
+        const int NUMBER_OF_REQUESTS = 20;
+        const int NUMBER_OF_USERS = 50;
+        const int LIMIT = 3000; // milliseconds
 
         [Test]
         public void TestPerformance()
         {            
-            var times = new List<long>();
-            var users = new List<Task>();
+            var times = new List<long>();            
 
             for (int i = 0; i < NUMBER_OF_USERS; i++)
             {
-                var webClient = new HttpClient();
-                webClient.Timeout = TimeSpan.FromMinutes(MAX_TIMEOUT);
+                var webClient = new HttpClient();                
                 long time = 0;
-                users.Add(new Task(() => 
+                var user = new Task(() => 
                 { 
-                    ExecuteParallelRequest(webClient, URL, NUMBER_OF_REQUESTS, out time);
+                    ExecuteParallelRequests(webClient, URL, NUMBER_OF_REQUESTS, out time);
                     times.Add(time);
-                }));                
-            }
+                });
 
-            foreach (var user in users)
-            {
                 user.Start();
+                user.Wait();                
             }
-
-            Task.WaitAll(users.ToArray());
             
             var userNumber = 0;
             foreach (var time in times)
@@ -52,13 +45,22 @@ namespace PerformaceTestExample
 
             var avrage = times.Sum()/times.Count;
             Console.WriteLine($"Average Response Time is: {avrage}");
+
+            var max = times.Max();
+            Console.WriteLine($"Maximum Response Time is: {max}");
+
+            var min = times.Min();
+            Console.WriteLine($"Minimum Response Time is: {min}");
+
+            var upperLimitCount = times.Where(x => x >= LIMIT).ToList().Count;
+            Console.WriteLine($"Number of Responses Time more than {LIMIT} milliseconds is: {upperLimitCount}");
         }
 
-        private void ExecuteParallelRequest(HttpClient webClient, string url, int numberOfRequests, out long elapsedTime)
+        private void ExecuteParallelRequests(HttpClient webClient, string url, int numberOfRequests, out long elapsedTime)
         {            
             var userRequests = new List<Task>();
 
-            Stopwatch timer = new System.Diagnostics.Stopwatch();
+            Stopwatch timer = new Stopwatch();
             timer.Start();
 
             for (int i = 0; i < numberOfRequests; i++)
