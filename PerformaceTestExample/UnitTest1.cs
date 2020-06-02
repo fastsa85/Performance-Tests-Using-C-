@@ -14,7 +14,7 @@ namespace PerformaceTestExample
         //const string URL = "https://localhost:5001/api/v1/posts";
         const string URL = "https://www.google.com.ua";
         const int NUMBER_OF_REQUESTS = 300;
-        const int NUMBER_OF_USERS = 4;
+        const int NUMBER_OF_USERS = 3;
 
         const int MAX_TIMEOUT = 10; // minutes
 
@@ -26,7 +26,7 @@ namespace PerformaceTestExample
 
             for (int i = 0; i < NUMBER_OF_USERS; i++)
             {
-                var webClient = new HttpClient(clientHandler);
+                var webClient = new HttpClient();
                 webClient.Timeout = TimeSpan.FromMinutes(MAX_TIMEOUT);
                 long time = 0;
                 users.Add(new Task(() => 
